@@ -1,0 +1,114 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+public class DataFileReader {
+
+  public static List<RowData> readRowDataFromFile() throws Exception {
+    return readRowDataFromFile(new File(System.getenv().get("USERPROFILE") + "\\Downloads\\Export.xls"), "", BigDecimal.ZERO,
+        BigDecimal.ZERO);
+  }
+
+  public static List<RowData> readRowDataFromFile(File file) throws Exception {
+    return readRowDataFromFile(file, "", BigDecimal.ZERO, BigDecimal.ZERO);
+  }
+
+  public static List<RowData> readRowDataFromFile(File file, BigDecimal ratioThreshold, BigDecimal valueThreshold) throws Exception {
+    return readRowDataFromFile(file, "", ratioThreshold, valueThreshold);
+  }
+
+  public static List<RowData> readRowDataFromFile(File file, String positionFilter, BigDecimal ratioThreshold, BigDecimal valueThreshold)
+      throws Exception {
+    List<RowData> results = new ArrayList<RowData>();
+    RowData rowData = null;
+    List<Object> dataKeys = null;
+    List<Object> data = null;
+
+    List<HSSFRow> fileLines = readLinesFromFile(file);
+    int dataKeyCount = 0;
+    HSSFRow row;
+    for(int lineIndex = 0; lineIndex < fileLines.size(); lineIndex++) {
+      data = Collections.emptyList();
+      row = fileLines.get(lineIndex);
+      if(dataKeys == null) {// read keys from the first line
+        dataKeys = readCellsFromRow(row);
+        dataKeyCount = dataKeys.size();
+      }
+      else { // second and subsequent lines are the data
+        data = readCellsFromRow(row, dataKeyCount);
+        rowData = new RowData();
+        for(int i = 0; i < dataKeyCount; i++) {
+          rowData.put((String)dataKeys.get(i), data.get(i));
+        }
+        if(rowData.getDecimalValue(Constants.VALUE_COL_HEADER).compareTo(valueThreshold) >= 0
+            && rowData.getDecimalValue(Constants.RATIO_COL_HEADER).compareTo(ratioThreshold) >= 0
+            && (positionFilter.trim().isEmpty() || rowData.getStringValue(Constants.POSITION_COL_HEADER).trim().equals(positionFilter))) {
+          results.add(rowData);
+        }
+      }
+    }
+    return results;
+  }
+
+  public static List<HSSFRow> readLinesFromFile(String fileName) throws IOException {
+    return readLinesFromFile(new File(fileName));
+  }
+
+  private static List<HSSFRow> readLinesFromFile(File file) throws IOException {
+    List<HSSFRow> results = new ArrayList<HSSFRow>();
+    try {
+      POIFSFileSystem fileSystem = new POIFSFileSystem(new FileInputStream(file));
+      HSSFWorkbook workbook = new HSSFWorkbook(fileSystem);
+      HSSFSheet sheet = workbook.getSheetAt(0);
+
+      for(int i = 0; i <= sheet.getLastRowNum(); i++) {
+        results.add(sheet.getRow(i));
+      }
+    }
+    catch(IOException e) {
+      e.printStackTrace(System.err);
+      throw e;
+    }
+    return results;
+  }
+
+  private static List<Object> readCellsFromRow(HSSFRow row) throws Exception {
+    return readCellsFromRow(row, -1);
+  }
+
+  private static List<Object> readCellsFromRow(HSSFRow row, int numCols) throws Exception {
+    List<Object> results = new ArrayList<Object>();
+    try {
+      HSSFCell cell = null;
+      numCols = numCols < 0 ? row.getLastCellNum() : numCols;
+      for(int i = 0; i < numCols; i++) {
+        cell = row.getCell(i, HSSFRow.CREATE_NULL_AS_BLANK);
+        switch(cell.getCellType()) {
+          case HSSFCell.CELL_TYPE_STRING:
+            results.add(cell.getStringCellValue());
+            break;
+          case HSSFCell.CELL_TYPE_NUMERIC:
+            results.add(new BigDecimal(cell.getNumericCellValue()));
+            break;
+          default:
+            results.add("");
+            break;
+        }
+      }
+    }
+    catch(Exception e) {
+      e.printStackTrace(System.err);
+      throw e;
+    }
+    return results;
+  }
+}

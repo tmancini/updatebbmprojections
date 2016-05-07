@@ -1,0 +1,174 @@
+package dbp.server;
+
+import java.io.File;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import dbp.common.Constants;
+
+public class DBPFD {
+  // These need to be manually defined before running
+  private static final String[] excludedPlayerList = {};
+  private static final String[] excludedTeamList = {};
+  private static final String[] includedTeamList = {};
+
+  private static String exportFileName;
+
+  public DBPFD() {
+  }
+
+  public Map<String, List<Player>> getPlayerMap(BigDecimal minRatio, BigDecimal minValue) {
+    exportFileName = System.getenv().get("USERPROFILE") + "\\Downloads\\Export.xls";
+    DownloadExportFile def = new DownloadExportFile("tomm0", "therock", Constants.FANDUEL, exportFileName);
+    boolean result = def.downloadExportFile();
+
+    Map<String, List<Player>> playerMap = new HashMap<String, List<Player>>();
+    if(result) {
+      playerMap.put(Constants.PG, fillPlayerList(Constants.PG, minRatio, minValue));
+      playerMap.put(Constants.SG, fillPlayerList(Constants.SG, minRatio, minValue));
+      playerMap.put(Constants.SF, fillPlayerList(Constants.SF, minRatio, minValue));
+      playerMap.put(Constants.PF, fillPlayerList(Constants.PF, minRatio, minValue));
+      playerMap.put(Constants.C, fillPlayerList(Constants.C, minRatio, minValue));
+    }
+    return playerMap;
+  }
+
+  public List<Team> createTeams(Map<String, List<String>> reqPlayers, BigDecimal minRatio, BigDecimal minValue, char type) {
+    List<Player[]> pgSetList = new ArrayList<Player[]>();
+    List<Player[]> sgSetList = new ArrayList<Player[]>();
+    List<Player[]> sfSetList = new ArrayList<Player[]>();
+    List<Player[]> pfSetList = new ArrayList<Player[]>();
+    List<Player[]> cSetList = new ArrayList<Player[]>();
+    List<Team> teamList = new ArrayList<Team>();
+
+    try {
+      processSubsets(fillPlayerList(Constants.PG, minRatio, minValue), Constants.MAX_PG, pgSetList,
+          reqPlayers.get(Constants.PG).toArray(new String[0]));
+      processSubsets(fillPlayerList(Constants.SG, minRatio, minValue), Constants.MAX_SG, sgSetList,
+          reqPlayers.get(Constants.SG).toArray(new String[0]));
+      processSubsets(fillPlayerList(Constants.SF, minRatio, minValue), Constants.MAX_SF, sfSetList,
+          reqPlayers.get(Constants.SF).toArray(new String[0]));
+      processSubsets(fillPlayerList(Constants.PF, minRatio, minValue), Constants.MAX_PF, pfSetList,
+          reqPlayers.get(Constants.PF).toArray(new String[0]));
+      processSubsets(fillPlayerList(Constants.C, minRatio, minValue), Constants.MAX_C, cSetList,
+          reqPlayers.get(Constants.C).toArray(new String[0]));
+
+// System.setOut(new PrintStream("teams.txt"));
+
+      Team bestTeam = null;
+      Team team = new Team();
+      for(Player[] pg : pgSetList) {
+        for(Player[] sg : sgSetList) {
+          for(Player[] sf : sfSetList) {
+            for(Player[] pf : pfSetList) {
+              for(Player[] c : cSetList) {
+                team = new Team();
+                team.addPlayersToTeam(Arrays.asList(pg));
+                team.addPlayersToTeam(Arrays.asList(sg));
+                team.addPlayersToTeam(Arrays.asList(sf));
+                team.addPlayersToTeam(Arrays.asList(pf));
+                team.addPlayersToTeam(Arrays.asList(c));
+
+                if(team.getTotalPrice().compareTo(Constants.MAX_PRICE) <= 0 && (bestTeam == null || team.compareTeam(bestTeam, type) >= 0)) {
+                  bestTeam = new Team(team.getPlayers());
+                  teamList.add(bestTeam);
+                  bestTeam.printTeam();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    return teamList;
+  }
+
+  static void makeSetsWithPlayer(String[] reqPlayers, List<Player[]> setList, List<Player> playerList) {
+    Player[] players = new Player[reqPlayers.length];
+
+    int index = 0;
+    for(String reqPlayer : reqPlayers) {
+      Player player = findPlayer(playerList, reqPlayer);
+      if(player == null) {
+        System.err.println("Player: " + reqPlayer + " not found!");
+        System.exit(-1);
+      }
+      players[index++] = player;
+      playerList.remove(player);
+    }
+
+    if(players.length == 2 || (players.length == 1 && players[0].getPosition().equals(Constants.C))) {
+      setList.add(players);
+    }
+    else {
+      for(Player tempPlayer : playerList) {
+        setList.add(new Player[] {players[0], tempPlayer});
+      }
+    }
+  }
+
+  static Player findPlayer(List<Player> playerList, String name) {
+    for(Player player : playerList) {
+      if(player.getName().equalsIgnoreCase(name)) {
+        return player;
+      }
+    }
+    return null;
+  }
+
+  static void processSubsets(List<Player> playerList, int k, List<Player[]> subsetStoringList) {
+    processSubsets(playerList, k, subsetStoringList, new String[0]);
+  }
+
+  static void processSubsets(List<Player> playerList, int k, List<Player[]> subsetStoringList, String[] reqPlayers) {
+    if(reqPlayers.length == 0) {
+      Player[] subset = new Player[k];
+      processLargerSubsets(playerList.toArray(new Player[0]), subset, 0, 0, subsetStoringList);
+    }
+    else {
+      makeSetsWithPlayer(reqPlayers, subsetStoringList, playerList);
+    }
+  }
+
+  static void processLargerSubsets(Player[] set, Player[] subset, int subsetSize, int nextIndex, List<Player[]> subsetStoringList) {
+    if(subsetSize == subset.length) {
+      subsetStoringList.add(Arrays.copyOf(subset, subset.length));
+    }
+    else {
+      for(int j = nextIndex; j < set.length; j++) {
+        subset[subsetSize] = set[j];
+        processLargerSubsets(set, subset, subsetSize + 1, j + 1, subsetStoringList);
+      }
+    }
+  }
+
+  private static List<Player> fillPlayerList(String position, BigDecimal minRatio, BigDecimal minValue) {
+    List<Player> positionList = new ArrayList<Player>();
+
+    try {
+      for(RowData rowData : DataFileReader.readRowDataFromFile(new File(exportFileName), position, minRatio, minValue)) {
+        Player player = new Player(rowData.getStringValue(Constants.NAME_COL_HEADER),
+            rowData.getStringValue(Constants.POSITION_COL_HEADER), rowData.getStringValue(Constants.TEAM_COL_HEADER),
+            rowData.getDecimalValue(Constants.VALUE_COL_HEADER), rowData.getDecimalValue(Constants.PRICE_COL_HEADER),
+            rowData.getDecimalValue(Constants.AVERAGE_COL_HEADER), rowData.getDecimalValue(Constants.EASE_COL_HEADER),
+            rowData.getStringValue(Constants.OPP_COL_HEADER));
+        if(!Arrays.asList(excludedPlayerList).contains(player.getName())
+            && !Arrays.asList(excludedTeamList).contains(player.getTeam())
+            && (includedTeamList.length == 0 || Arrays.asList(includedTeamList).contains(player.getTeam()))) {
+          positionList.add(player);
+        }
+      }
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+
+    return positionList;
+  }
+}

@@ -1,0 +1,102 @@
+package dbp.client;
+
+import java.math.BigDecimal;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.ButtonGroup;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import dbp.server.Player;
+
+public abstract class DBPPanel {
+
+  protected JFrame frame;
+  protected DisabledGlassPane glassPane;
+
+  protected JFormattedTextField minRatioField;
+  protected JFormattedTextField minValueField;
+  protected JRadioButton useTotalValueButton;
+  protected JRadioButton useTotalCompButton;
+  protected JRadioButton useTotalAverageButton;
+  protected final ButtonGroup buttonGroup = new ButtonGroup();
+
+  protected final static int NAME_COLUMN = 0;
+  protected final static int OPP_COLUMN = 1;
+  protected final static int PRICE_COLUMN = 2;
+  protected final static int RATIO_COLUMN = 3;
+  protected final static int VALUE_COLUMN = 4;
+  protected final static int COMP_VALUE_COLUMN = 5;
+  protected final static int EASE_COLUMN = 6;
+  protected final static int ODDS_COLUMN = 7;
+
+  protected final String[] columnNames = {"Player", "Opp", "Price", "Ratio", "Value", "Comp Value", "Ease", "Odds"};
+
+  protected int pos = 0;
+
+  protected abstract void initialize();
+
+  protected abstract void createTeams();
+
+  protected abstract void updateProjectionsAndFillComboBoxes();
+
+  /**
+   * Create the application.
+   */
+  public DBPPanel() {
+    initialize();
+  }
+
+  public JFrame getFrame() {
+    return frame;
+  }
+
+  public DisabledGlassPane getGlassPane() {
+    return glassPane;
+  }
+
+  @SuppressWarnings("unused")
+  protected JScrollPane getPositionTable(List<Player> playerList) {
+    Object[][] data = new Object[playerList.size()][7];
+    int rowNum = 0;
+    for(Player player : playerList) {
+      Object[] playerRow = {player.getName(), player.getOpponent(), player.getPrice(), player.getRatio(), player.getValue(),
+                            player.getCompValue(), player.getEase(), player.getOdds()};
+      data[rowNum++] = playerRow;
+    }
+
+    JTable table = new JTable(data, columnNames);
+    TableColumn playerColumn = table.getColumnModel().getColumn(NAME_COLUMN);
+    TableColumn oppColumn = table.getColumnModel().getColumn(OPP_COLUMN);
+    TableColumn priceColumn = table.getColumnModel().getColumn(PRICE_COLUMN);
+    TableColumn ratioColumn = table.getColumnModel().getColumn(RATIO_COLUMN);
+    TableColumn valueColumn = table.getColumnModel().getColumn(VALUE_COLUMN);
+    TableColumn compValueColumn = table.getColumnModel().getColumn(COMP_VALUE_COLUMN);
+    TableColumn easeColumn = table.getColumnModel().getColumn(EASE_COLUMN);
+    TableColumn oddsColumn = table.getColumnModel().getColumn(ODDS_COLUMN);
+
+    TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(table.getModel());
+    sorter.setComparator(PRICE_COLUMN, new Comparator<BigDecimal>() {
+      @Override
+      public int compare(BigDecimal o1, BigDecimal o2) {
+        return o1.compareTo(o2);
+      }
+    });
+    table.setRowSorter(sorter);
+
+    playerColumn.setPreferredWidth(125);
+    ratioColumn.setCellRenderer(new ColorRenderer());
+    valueColumn.setCellRenderer(new ColorRenderer());
+    compValueColumn.setCellRenderer(new ColorRenderer());
+    easeColumn.setCellRenderer(new ColorRenderer());
+    oddsColumn.setPreferredWidth(125);
+    oddsColumn.setCellRenderer(new ColorRenderer());
+
+    return new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+  }
+}

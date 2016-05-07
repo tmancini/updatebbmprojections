@@ -1,0 +1,159 @@
+package dbp.server;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import dbp.common.Constants;
+
+public class DBP {
+
+  private static final String[] REQ_PG = {};
+  private static final String[] REQ_SG = {};
+  private static final String[] REQ_SF = {};
+  private static final String[] REQ_PF = {};
+  private static final String[] REQ_C = {};
+
+  private static final String[] excludedPlayerList = {};
+
+  private static String exportFileName;
+
+  /**
+   * @param args
+   */
+  public static void main(String[] args) {
+    try {
+      exportFileName = System.getenv().get("USERPROFILE") + "\\Downloads\\Export.xls";
+      DownloadExportFile def = new DownloadExportFile("tomm0", "therock", exportFileName);
+      def.downloadExportFile();
+
+      List<Player> pgList = fillPlayerList(Constants.PG);
+      List<Player> sgList = fillPlayerList(Constants.SG);
+      List<Player> sfList = fillPlayerList(Constants.SF);
+      List<Player> pfList = fillPlayerList(Constants.PF);
+      List<Player> cList = fillPlayerList(Constants.C);
+
+      List<Player[]> pgSetList = new ArrayList<Player[]>();
+      List<Player[]> sgSetList = new ArrayList<Player[]>();
+      List<Player[]> sfSetList = new ArrayList<Player[]>();
+      List<Player[]> pfSetList = new ArrayList<Player[]>();
+      List<Player[]> cSetList = new ArrayList<Player[]>();
+
+      processSubsets(pgList, Constants.MAX_PG, pgSetList, REQ_PG);
+      processSubsets(sgList, Constants.MAX_SG, sgSetList, REQ_SG);
+      processSubsets(sfList, Constants.MAX_SF, sfSetList, REQ_SF);
+      processSubsets(pfList, Constants.MAX_PF, pfSetList, REQ_PF);
+      processSubsets(cList, Constants.MAX_C, cSetList, REQ_C);
+
+      System.setOut(new PrintStream("teams.txt"));
+
+      Team bestTeam = null;
+      Team team = new Team();
+      for(Player[] pg : pgSetList) {
+        for(Player[] sg : sgSetList) {
+          for(Player[] sf : sfSetList) {
+            for(Player[] pf : pfSetList) {
+              for(Player[] c : cSetList) {
+                team = new Team();
+                team.addPlayersToTeam(Arrays.asList(pg));
+                team.addPlayersToTeam(Arrays.asList(sg));
+                team.addPlayersToTeam(Arrays.asList(sf));
+                team.addPlayersToTeam(Arrays.asList(pf));
+                team.addPlayersToTeam(Arrays.asList(c));
+
+                if(team.getTotalPrice().compareTo(Constants.MAX_PRICE) <= 0
+                    && (bestTeam == null || team.getTotalValue().compareTo(bestTeam.getTotalValue()) >= 0)) {
+                  bestTeam = new Team(team.getPlayers());
+                  bestTeam.printTeam();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  static void makeSetsWithPlayer(String[] reqPlayers, List<Player[]> setList, List<Player> playerList) {
+    Player[] players = new Player[reqPlayers.length];
+
+    int index = 0;
+    for(String reqPlayer : reqPlayers) {
+      Player player = findPlayer(playerList, reqPlayer);
+      if(player == null) {
+        System.err.println("Player: " + reqPlayer + " not found!");
+        System.exit(-1);
+      }
+      players[index++] = player;
+      playerList.remove(player);
+    }
+
+    if(players.length == 2 || (players.length == 1 && players[0].getPosition().equals(Constants.C))) {
+      setList.add(players);
+    }
+    else {
+      for(Player tempPlayer : playerList) {
+        setList.add(new Player[] {players[0], tempPlayer});
+      }
+    }
+  }
+
+  static Player findPlayer(List<Player> playerList, String name) {
+    for(Player player : playerList) {
+      if(player.getName().equalsIgnoreCase(name)) {
+        return player;
+      }
+    }
+    return null;
+  }
+
+  static void processSubsets(List<Player> playerList, int k, List<Player[]> subsetStoringList) {
+    processSubsets(playerList, k, subsetStoringList, new String[0]);
+  }
+
+  static void processSubsets(List<Player> playerList, int k, List<Player[]> subsetStoringList, String[] reqPlayers) {
+    if(reqPlayers.length == 0) {
+      Player[] subset = new Player[k];
+      processLargerSubsets(playerList.toArray(new Player[0]), subset, 0, 0, subsetStoringList);
+    }
+    else {
+      makeSetsWithPlayer(reqPlayers, subsetStoringList, playerList);
+    }
+  }
+
+  static void processLargerSubsets(Player[] set, Player[] subset, int subsetSize, int nextIndex, List<Player[]> subsetStoringList) {
+    if(subsetSize == subset.length) {
+      subsetStoringList.add(Arrays.copyOf(subset, subset.length));
+    }
+    else {
+      for(int j = nextIndex; j < set.length; j++) {
+        subset[subsetSize] = set[j];
+        processLargerSubsets(set, subset, subsetSize + 1, j + 1, subsetStoringList);
+      }
+    }
+  }
+
+  private static List<Player> fillPlayerList(String position) {
+    List<Player> positionList = new ArrayList<Player>();
+
+    try {
+      for(RowData rowData : DataFileReader.readRowDataFromFile(new File(exportFileName), position, Constants.RATIO_THRESHOLD,
+          Constants.VALUE_THRESHOLD)) {
+        Player player = new Player(rowData.getStringValue(Constants.NAME_COL_HEADER),
+            rowData.getStringValue(Constants.POSITION_COL_HEADER), rowData.getDecimalValue(Constants.VALUE_COL_HEADER),
+            rowData.getDecimalValue(Constants.PRICE_COL_HEADER), rowData.getDecimalValue(Constants.AVERAGE_COL_HEADER));
+        if(!Arrays.asList(excludedPlayerList).contains(player.getName())) {
+          positionList.add(player);
+        }
+      }
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+
+    return positionList;
+  }
+}

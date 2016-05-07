@@ -1,0 +1,53 @@
+package dbp.client;
+
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import dbp.common.Constants;
+
+public class DBPPanel {
+
+  public static void main(String[] args) {
+    EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        try {
+          JFrame frame = new JFrame();
+          frame.setTitle("Daily Basketball Projector");
+          frame.setSize(300, 150);
+          frame.setLocationRelativeTo(null);
+          frame.setLayout(new FlowLayout());
+
+          final JComboBox<String> siteComboBox = new JComboBox<>();
+          siteComboBox.addItem(Constants.FANDUEL);
+          siteComboBox.addItem(Constants.DRAFTKINGS);
+          frame.add(new JLabel("Pick a site:"));
+          frame.add(siteComboBox);
+          JButton okButton = new JButton("OK", null);
+          okButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+              if(siteComboBox.getSelectedItem().equals(Constants.FANDUEL)) {
+                DBPFDPanel panel = new DBPFDPanel();
+                panel.getFrame().setVisible(true);
+              }
+              else {
+                DBPDKPanel panel = new DBPDKPanel();
+                panel.getFrame().setVisible(true);
+              }
+            }
+          });
+          frame.add(okButton);
+          frame.setVisible(true);
+        }
+        catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+}

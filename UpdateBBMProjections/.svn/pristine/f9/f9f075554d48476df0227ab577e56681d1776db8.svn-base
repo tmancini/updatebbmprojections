@@ -1,0 +1,155 @@
+package dbp.server;
+
+import java.math.BigDecimal;
+import dbp.common.Constants;
+
+public class Player implements Comparable<Player> {
+
+  private String name;
+// private String position;
+  private BigDecimal value;
+  private BigDecimal price;
+  private String position;
+  private BigDecimal compValue;
+  private BigDecimal average;
+
+  public Player(String name, String position, BigDecimal value, BigDecimal price, BigDecimal compValue) {
+    super();
+    this.name = name;
+    this.position = position;
+    this.value = value.setScale(2, BigDecimal.ROUND_HALF_UP);
+    this.price = price;
+    this.compValue = compValue;
+
+    average = value.add(compValue).divide(Constants.TWO, 2, BigDecimal.ROUND_HALF_UP);
+  }
+
+  /**
+   * @return the name
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * @param name
+   *        the name to set
+   */
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  /**
+   * @return the position
+   */
+  public String getPosition() {
+    return position;
+  }
+
+  /**
+   * @param position
+   *        the position to set
+   */
+  public void setPosition(String position) {
+    this.position = position;
+  }
+
+  /**
+   * @return the value
+   */
+  public BigDecimal getValue() {
+    return value;
+  }
+
+  /**
+   * @param value
+   *        the value to set
+   */
+  public void setValue(BigDecimal value) {
+    this.value = value;
+  }
+
+  /**
+   * @return the price
+   */
+  public BigDecimal getPrice() {
+    return price;
+  }
+
+  /**
+   * @param price
+   *        the price to set
+   */
+  public void setPrice(BigDecimal price) {
+    this.price = price;
+  }
+
+  public BigDecimal getCompValue() {
+    return compValue;
+  }
+
+  public void setCompValue(BigDecimal compValue) {
+    this.compValue = compValue;
+  }
+
+  public BigDecimal getAverage() {
+    return average;
+  }
+
+  public void setAverage(BigDecimal average) {
+    this.average = average;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((position == null) ? 0 : position.hashCode());
+    result = prime * result + ((price == null) ? 0 : price.hashCode());
+    result = prime * result + ((value == null) ? 0 : value.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(this == obj)
+      return true;
+    if(obj == null)
+      return false;
+    if(getClass() != obj.getClass())
+      return false;
+    Player other = (Player)obj;
+    if(name == null) {
+      if(other.name != null)
+        return false;
+    }
+    else if(!name.equals(other.name))
+      return false;
+    if(position == null) {
+      if(other.position != null)
+        return false;
+    }
+    else if(!position.equals(other.position))
+      return false;
+    if(price == null) {
+      if(other.price != null)
+        return false;
+    }
+    else if(!price.equals(other.price))
+      return false;
+    if(value == null) {
+      if(other.value != null)
+        return false;
+    }
+    else if(!value.equals(other.value))
+      return false;
+    return true;
+  }
+
+  @Override
+  public int compareTo(Player o) {
+    return this.getName().compareTo(o.getName());
+  }
+
+}

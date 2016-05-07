@@ -1,0 +1,30 @@
+package dbp.client;
+
+import java.util.Vector;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+
+public class AutoCompleteComboBox<T> extends JComboBox<T> {
+
+  public AutoCompleteComboBox() {
+    super();
+    AutoCompleteDecorator.decorate(this);
+  }
+
+  public AutoCompleteComboBox(ComboBoxModel<T> aModel) {
+    super(aModel);
+    AutoCompleteDecorator.decorate(this);
+  }
+
+  public AutoCompleteComboBox(T[] items) {
+    super(items);
+    AutoCompleteDecorator.decorate(this);
+  }
+
+  public AutoCompleteComboBox(Vector<T> items) {
+    super(items);
+    AutoCompleteDecorator.decorate(this);
+  }
+
+}

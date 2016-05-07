@@ -1,0 +1,64 @@
+package dbp.client;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.math.BigDecimal;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+
+public class ColorRenderer extends DefaultTableCellRenderer {
+
+  private final float LOW_VALUE = new Float(0);
+  private final float MID_VALUE = new Float(25);
+  private final float HIGH_VALUE = new Float(50);
+
+  private final float LOW_RATIO = new Float(25);
+  private final float MID_RATIO = new Float(40);
+  private final float HIGH_RATIO = new Float(55);
+
+  private final float MID_EASE = new Float(.01);
+  private final float HIGH_EASE = new Float(1);
+  private final float LOW_EASE = new Float(-1);
+
+  @Override
+  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    Component cellComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    cellComponent.setBackground(getCellColor(value, column));
+    return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+  }
+
+  private Color getCellColor(Object value, int column) {
+    float floatValue = ((BigDecimal)value).floatValue();
+    Color tempColor;
+    switch(column) {
+      case DBPFDPanel.RATIO_COLUMN:
+        tempColor = floatValue > MID_RATIO ? Color.GREEN : Color.RED;
+        return new Color(tempColor.getRed() / 255, tempColor.getGreen() / 255, tempColor.getBlue() / 255, getOpacity(floatValue, column));
+      case DBPFDPanel.VALUE_COLUMN:
+      case DBPFDPanel.COMP_VALUE_COLUMN:
+        tempColor = floatValue > MID_VALUE ? Color.GREEN : Color.RED;
+        return new Color(tempColor.getRed() / 255, tempColor.getGreen() / 255, tempColor.getBlue() / 255, getOpacity(floatValue, column));
+      case DBPFDPanel.EASE_COLUMN:
+        tempColor = floatValue > MID_EASE ? Color.GREEN : Color.RED;
+        return new Color(tempColor.getRed() / 255, tempColor.getGreen() / 255, tempColor.getBlue() / 255, getOpacity(floatValue, column));
+      default:
+        return Color.WHITE;
+    }
+  }
+
+  private float getOpacity(float value, int column) {
+    switch(column) {
+      case DBPFDPanel.RATIO_COLUMN:
+        return value == MID_RATIO ? 0 : value > HIGH_RATIO || value < LOW_RATIO ? 1 : value < MID_RATIO ? 1 - value / MID_RATIO : value
+            / MID_RATIO - 1;
+      case DBPFDPanel.VALUE_COLUMN:
+      case DBPFDPanel.COMP_VALUE_COLUMN:
+        return value == MID_VALUE ? 0 : value > HIGH_VALUE || value < LOW_VALUE ? 1 : value < MID_VALUE ? 1 - value / MID_VALUE : value
+            / MID_VALUE - 1;
+      case DBPFDPanel.EASE_COLUMN:
+        return value < LOW_EASE || value > HIGH_EASE ? 1 : Math.abs(value);
+      default:
+        return 1;
+    }
+  }
+}

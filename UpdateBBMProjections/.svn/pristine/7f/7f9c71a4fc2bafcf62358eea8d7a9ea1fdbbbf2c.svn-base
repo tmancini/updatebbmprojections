@@ -1,0 +1,102 @@
+package dbp.server;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Team {
+
+  private List<Player> players;
+
+  private BigDecimal totalValue;
+  private BigDecimal totalPrice;
+  private BigDecimal totalAverage;
+
+  public Team() {
+    this(new ArrayList<Player>());
+  }
+
+  public Team(List<Player> players) {
+    super();
+    this.players = players;
+    totalValue = new BigDecimal(0);
+    totalPrice = new BigDecimal(0);
+    totalAverage = new BigDecimal(0);
+
+    for(Player player : players) {
+      totalValue = totalValue.add(player.getValue());
+      totalPrice = totalPrice.add(player.getPrice());
+      totalAverage = totalAverage.add(player.getAverage());
+    }
+  }
+
+  public void addPlayersToTeam(List<Player> players) {
+    for(Player player : players) {
+      addPlayerToTeam(player);
+    }
+  }
+
+  public void addPlayerToTeam(Player player) {
+    players.add(player);
+    totalValue = totalValue.add(player.getValue());
+    totalPrice = totalPrice.add(player.getPrice());
+    totalAverage = totalAverage.add(player.getAverage());
+  }
+
+  public void printTeam() {
+    for(Player player : players) {
+      System.out.println(player.getPosition()
+          + ": " + player.getName() + " Value: " + player.getValue().setScale(2, BigDecimal.ROUND_HALF_UP) + " - Average: "
+          + player.getAverage().setScale(2, BigDecimal.ROUND_HALF_UP) + " - Price: " + player.getPrice());
+    }
+    System.out.println("Total Value: "
+        + totalValue.setScale(2, BigDecimal.ROUND_HALF_UP) + " - Total Average: " + totalAverage.setScale(2, BigDecimal.ROUND_HALF_UP)
+        + " - Total Price: " + totalPrice);
+    System.out.println();
+  }
+
+  public List<Player> getPlayers() {
+    return players;
+  }
+
+  public void setPlayers(List<Player> players) {
+    this.players = players;
+  }
+
+  /**
+   * @return the totalValue
+   */
+  public BigDecimal getTotalValue() {
+    return totalValue;
+  }
+
+  /**
+   * @param totalValue
+   *        the totalValue to set
+   */
+  public void setTotalValue(BigDecimal totalValue) {
+    this.totalValue = totalValue;
+  }
+
+  /**
+   * @return the totalPrice
+   */
+  public BigDecimal getTotalPrice() {
+    return totalPrice;
+  }
+
+  /**
+   * @param totalPrice
+   *        the totalPrice to set
+   */
+  public void setTotalPrice(BigDecimal totalPrice) {
+    this.totalPrice = totalPrice;
+  }
+
+  public BigDecimal getTotalAverage() {
+    return totalAverage;
+  }
+
+  public void setTotalAverage(BigDecimal totalAverage) {
+    this.totalAverage = totalAverage;
+  }
+}

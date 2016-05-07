@@ -1,0 +1,113 @@
+// Edmunds & Associates, Inc. Copyright (c) 1999
+package dbp.client;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+/**
+ * This ComboBox is editable and allows users to filter the values that display in the ComboBox list based on the
+ * value typed into the editor
+ * 
+ */
+public class FilteredComboBox<T> extends JComboBox {
+
+  private List<T> items = new ArrayList<T>();
+
+  // ********************** Constructors ***********************//
+
+  /**
+   * Constructs a combo box that is enabled based on a boolean parameter.
+   */
+  public FilteredComboBox() {
+    super();
+    this.setName("FilteredComboBox");
+    this.setEditable(true);
+
+    final JTextField filterField = (JTextField)this.getEditor().getEditorComponent();
+    filterField.addKeyListener(new KeyAdapter() {
+      // To correctly set the value of the editor if there is only one value in the list after filtering
+      @Override
+      public void keyPressed(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ENTER || ke.getKeyCode() == KeyEvent.VK_TAB) {
+          filterField.setText((String)getSelectedItem());
+        }
+        else {
+          super.keyPressed(ke);
+        }
+      }
+
+      public void keyReleased(KeyEvent ke) {
+        if(ke.getKeyCode() == KeyEvent.VK_ENTER || ke.getKeyCode() == KeyEvent.VK_TAB) {
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              setPopupVisible(false);
+            }
+          });
+        }
+        else if(ke.getKeyCode() != KeyEvent.VK_DOWN && ke.getKeyCode() != KeyEvent.VK_UP) {
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              // Trim ending spaces
+              filterComboBox(filterField.getText().replaceAll("^\\s+", ""), true);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  public void filterComboBox(String enteredText, boolean fromKeyListener) {
+    List<String> filterArray = new ArrayList<String>();
+    for(int i = 0; i < items.size(); i++) {
+      if(items.get(i) instanceof String && ((String)items.get(i)).toLowerCase().contains(enteredText.toLowerCase())) {
+        filterArray.add((String)items.get(i));
+      }
+    }
+    DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)this.getModel();
+    model.removeAllElements();
+    for(String s : filterArray) {
+      model.addElement(s);
+    }
+
+    if(fromKeyListener) {
+      this.setPopupVisible(false);
+      this.setPopupVisible(true);
+    }
+
+    JTextField textfield = (JTextField)this.getEditor().getEditorComponent();
+    textfield.setText(enteredText);
+  }
+
+  @Override
+  public void addItem(Object item) {
+    super.addItem(item);
+    items.add((T)item);
+  }
+
+  /**
+   * @return the items
+   */
+  public List<T> getItems() {
+    return items;
+  }
+
+  /**
+   * @param items
+   *        the items to set
+   */
+  public void setItems(List<T> items) {
+    this.items = items;
+  }
+
+  @Override
+  public void removeAllItems() {
+    super.removeAllItems();
+    this.items = new ArrayList<T>();
+  }
+}

@@ -1,0 +1,121 @@
+package dbp.client;
+
+import java.awt.EventQueue;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+
+public class DBPPanel {
+
+  private JFrame frame;
+
+  /**
+   * Launch the application.
+   */
+  public static void main(String[] args) {
+    EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        try {
+          DBPPanel window = new DBPPanel();
+          window.frame.setVisible(true);
+        }
+        catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+
+  /**
+   * Create the application.
+   */
+  public DBPPanel() {
+    initialize();
+  }
+
+  /**
+   * Initialize the contents of the frame.
+   */
+  private void initialize() {
+    frame = new JFrame();
+    frame.setBounds(100, 100, 640, 480);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.getContentPane().setLayout(
+        new FormLayout(new ColumnSpec[] {FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
+                                         ColumnSpec.decode("left:default"), FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,},
+            new RowSpec[] {FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,}));
+
+    JLabel lblPg = new JLabel("PG:");
+    frame.getContentPane().add(lblPg, "2, 2, right, default");
+
+    JComboBox comboBox = new JComboBox();
+    frame.getContentPane().add(comboBox, "4, 2, left, default");
+
+    JLabel label = new JLabel("PG:");
+    frame.getContentPane().add(label, "2, 4, right, default");
+
+    JComboBox comboBox_1 = new JComboBox();
+    frame.getContentPane().add(comboBox_1, "4, 4, left, default");
+
+    JLabel lblSg = new JLabel("SG:");
+    frame.getContentPane().add(lblSg, "2, 6, right, default");
+
+    JComboBox comboBox_2 = new JComboBox();
+    frame.getContentPane().add(comboBox_2, "4, 6, left, default");
+
+    JLabel label_1 = new JLabel("SG:");
+    frame.getContentPane().add(label_1, "2, 8, right, default");
+
+    JComboBox comboBox_3 = new JComboBox();
+    frame.getContentPane().add(comboBox_3, "4, 8, left, default");
+
+    JLabel lblSf = new JLabel("SF:");
+    frame.getContentPane().add(lblSf, "2, 10, right, default");
+
+    JComboBox comboBox_4 = new JComboBox();
+    frame.getContentPane().add(comboBox_4, "4, 10, left, default");
+
+    JLabel label_2 = new JLabel("SF:");
+    frame.getContentPane().add(label_2, "2, 12, right, default");
+
+    JComboBox comboBox_5 = new JComboBox();
+    frame.getContentPane().add(comboBox_5, "4, 12, left, default");
+
+    JLabel lblPf = new JLabel("PF:");
+    frame.getContentPane().add(lblPf, "2, 14, right, default");
+
+    JComboBox comboBox_6 = new JComboBox();
+    frame.getContentPane().add(comboBox_6, "4, 14, left, default");
+
+    JLabel label_3 = new JLabel("PF:");
+    frame.getContentPane().add(label_3, "2, 16, right, default");
+
+    JComboBox comboBox_7 = new JComboBox();
+    frame.getContentPane().add(comboBox_7, "4, 16, left, default");
+
+    JLabel lblC = new JLabel("C:");
+    frame.getContentPane().add(lblC, "2, 18, right, default");
+
+    JComboBox comboBox_8 = new JComboBox();
+    frame.getContentPane().add(comboBox_8, "4, 18, left, default");
+
+    JButton btnUpdateProjections = new JButton("Update Projections");
+    frame.getContentPane().add(btnUpdateProjections, "4, 32");
+  }
+
+}

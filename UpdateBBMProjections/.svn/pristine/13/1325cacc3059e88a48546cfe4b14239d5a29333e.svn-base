@@ -1,0 +1,58 @@
+package dbp.server;
+import java.math.BigDecimal;
+import java.util.HashMap;
+
+public class RowData extends HashMap<String, Object> {
+  private static final long serialVersionUID = 1L;
+  private final BigDecimal ZERO = new BigDecimal(0);
+  private final int ZERO_INT = new BigDecimal(0).intValue();
+
+  public String getStringValue(String key) {
+    String value = "";
+    try {
+      if(this.containsKey(key)) {
+        value = (String)this.get(key);
+      }
+    }
+    catch(ClassCastException cce) {
+      if(this.get(key) instanceof BigDecimal) {
+        return String.valueOf(getDecimalValue(key));
+      }
+    }
+    return value;
+  }
+
+  public BigDecimal getDecimalValue(String key) {
+    BigDecimal value = ZERO;
+    try {
+      if(this.containsKey(key)) {
+        value = (BigDecimal)this.get(key);
+      }
+    }
+    catch(ClassCastException cce) {
+      if(this.get(key) instanceof String) {
+        if(!getStringValue(key).trim().isEmpty()) {
+          return new BigDecimal(getStringValue(key));
+        }
+      }
+    }
+    return value;
+  }
+
+  public Integer getIntValue(String key) {
+    Integer value = ZERO_INT;
+    try {
+      if(this.containsKey(key)) {
+        value = ((BigDecimal)this.get(key)).intValue();
+      }
+    }
+    catch(ClassCastException cce) {
+      if(this.get(key) instanceof String) {
+        if(!getStringValue(key).trim().isEmpty()) {
+          return new BigDecimal(getStringValue(key)).intValue();
+        }
+      }
+    }
+    return value;
+  }
+}

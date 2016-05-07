@@ -1,0 +1,38 @@
+package dbp.common;
+
+import java.math.BigDecimal;
+
+public class Constants {
+  public final static String USER = "tomm0";
+  public final static String PASSWORD = "therock";
+
+  public final static BigDecimal RATIO_THRESHOLD = new BigDecimal(38.00);
+  public final static BigDecimal VALUE_THRESHOLD = new BigDecimal(17.00);
+
+  public final static BigDecimal TWO = new BigDecimal(2.00);
+
+  public final static String PG = "PG";
+  public final static String SG = "SG";
+  public final static String SF = "SF";
+  public final static String PF = "PF";
+  public final static String C = "C";
+
+  public final static String NAME_COL_HEADER = "Name";
+  public final static String PRICE_COL_HEADER = "Price";
+  public final static String VALUE_COL_HEADER = "Value";
+  public final static String POSITION_COL_HEADER = "Pos";
+  public final static String RATIO_COL_HEADER = "Ratio";
+  public final static String AVERAGE_COL_HEADER = "CompV";
+  public final static String EASE_COL_HEADER = "Ease";
+  public final static String TEAM_COL_HEADER = "Team";
+  public final static String OPP_COL_HEADER = "Opp";
+
+  public final static BigDecimal MAX_PRICE = new BigDecimal(60000);
+  public final static int MAX_PLAYERS = 9;
+
+  public final static int MAX_PG = 2;
+  public final static int MAX_SG = 2;
+  public final static int MAX_SF = 2;
+  public final static int MAX_PF = 2;
+  public final static int MAX_C = 1;
+}

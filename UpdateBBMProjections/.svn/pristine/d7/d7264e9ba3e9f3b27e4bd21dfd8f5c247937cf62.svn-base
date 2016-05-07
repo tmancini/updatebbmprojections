@@ -1,0 +1,404 @@
+package dbp.client;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import javax.swing.table.TableColumn;
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+import dbp.common.Constants;
+import dbp.server.DBP;
+import dbp.server.Player;
+import dbp.server.Team;
+
+// TODO - Add a combo box containing all players with ability to add them to a list that gets passed to the DBP methods.
+// Or a multiple selection ComboBox
+public class DBPPanel {
+
+  private JFrame frame;
+  private DisabledGlassPane glassPane;
+  private FilteredComboBox<String> pg1ComboBox;
+  private FilteredComboBox<String> pg2ComboBox;
+  private FilteredComboBox<String> sg1ComboBox;
+  private FilteredComboBox<String> sg2ComboBox;
+  private FilteredComboBox<String> sf1ComboBox;
+  private FilteredComboBox<String> sf2ComboBox;
+  private FilteredComboBox<String> pf1ComboBox;
+  private FilteredComboBox<String> pf2ComboBox;
+  private FilteredComboBox<String> cComboBox;
+
+  private DBP dbp;
+  private JFormattedTextField minRatioField;
+  private JFormattedTextField minValueField;
+  private JRadioButton useTotalValueButton;
+  private JRadioButton useTotalCompButton;
+  private JRadioButton useTotalAverageButton;
+  private final ButtonGroup buttonGroup = new ButtonGroup();
+
+  public final static int NAME_COLUMN = 0;
+  public final static int OPP_COLUMN = 1;
+  public final static int PRICE_COLUMN = 2;
+  public final static int RATIO_COLUMN = 3;
+  public final static int VALUE_COLUMN = 4;
+  public final static int COMP_VALUE_COLUMN = 5;
+  public final static int EASE_COLUMN = 6;
+
+  private final String[] columnNames = {"Player", "Opp", "Price", "Ratio", "Value", "Comp Value", "Ease"};
+
+  /**
+   * Launch the application.
+   */
+  public static void main(String[] args) {
+    EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        try {
+          DBPPanel window = new DBPPanel();
+          window.frame.setVisible(true);
+// window.updateProjectionsAndFillComboBoxes();
+        }
+        catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+
+  /**
+   * Create the application.
+   */
+  public DBPPanel() {
+    initialize();
+  }
+
+  public JFrame getFrame() {
+    return frame;
+  }
+
+  public DisabledGlassPane getGlassPane() {
+    return glassPane;
+  }
+
+  /**
+   * Initialize the contents of the frame.
+   */
+  private void initialize() {
+    frame = new JFrame();
+    frame.setTitle("Daily Basketball Projector");
+    frame.setSize(640, 480);
+    frame.setLocationRelativeTo(null);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    glassPane = new DisabledGlassPane();
+    frame.setGlassPane(glassPane);
+    frame.getContentPane().setLayout(
+        new FormLayout(new ColumnSpec[] {FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
+                                         ColumnSpec.decode("left:default"), ColumnSpec.decode("8dlu"), FormFactory.DEFAULT_COLSPEC,
+                                         FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
+                                         FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,},
+            new RowSpec[] {FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                           FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                           FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,}));
+
+    JLabel lblPg = new JLabel("PG:");
+    frame.getContentPane().add(lblPg, "2, 2, right, default");
+
+    pg1ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(pg1ComboBox, "4, 2, fill, default");
+
+    JLabel label = new JLabel("PG:");
+    frame.getContentPane().add(label, "2, 4, right, default");
+
+    pg2ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(pg2ComboBox, "4, 4, fill, default");
+
+    JLabel lblSg = new JLabel("SG:");
+    frame.getContentPane().add(lblSg, "2, 6, right, default");
+
+    sg1ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(sg1ComboBox, "4, 6, fill, default");
+
+    JLabel lblSg2 = new JLabel("SG:");
+    frame.getContentPane().add(lblSg2, "2, 8, right, default");
+
+    sg2ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(sg2ComboBox, "4, 8, fill, default");
+
+    useTotalValueButton = new JRadioButton("Use Total Value");
+    useTotalValueButton.setHorizontalAlignment(SwingConstants.RIGHT);
+    useTotalValueButton.setHorizontalTextPosition(SwingConstants.LEFT);
+// useTotalValueButton.setSelected(true);
+    buttonGroup.add(useTotalValueButton);
+    frame.getContentPane().add(useTotalValueButton, "6, 8");
+
+    JLabel lblSf = new JLabel("SF:");
+    frame.getContentPane().add(lblSf, "2, 10, right, default");
+
+    sf1ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(sf1ComboBox, "4, 10, fill, default");
+
+    useTotalCompButton = new JRadioButton("Use Total Comp Value");
+    useTotalCompButton.setHorizontalAlignment(SwingConstants.RIGHT);
+    useTotalCompButton.setHorizontalTextPosition(SwingConstants.LEFT);
+    buttonGroup.add(useTotalCompButton);
+    frame.getContentPane().add(useTotalCompButton, "6, 10");
+
+    JLabel label_2 = new JLabel("SF:");
+    frame.getContentPane().add(label_2, "2, 12, right, default");
+
+    sf2ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(sf2ComboBox, "4, 12, fill, default");
+
+    useTotalAverageButton = new JRadioButton("Use Total Average");
+    useTotalAverageButton.setHorizontalAlignment(SwingConstants.RIGHT);
+    useTotalAverageButton.setHorizontalTextPosition(SwingConstants.LEFT);
+    useTotalAverageButton.setSelected(true);
+
+    buttonGroup.add(useTotalAverageButton);
+    frame.getContentPane().add(useTotalAverageButton, "6, 12");
+
+    JLabel lblPf = new JLabel("PF:");
+    frame.getContentPane().add(lblPf, "2, 14, right, default");
+
+    pf1ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(pf1ComboBox, "4, 14, fill, default");
+
+    JLabel label_3 = new JLabel("PF:");
+    frame.getContentPane().add(label_3, "2, 16, right, default");
+
+    pf2ComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(pf2ComboBox, "4, 16, fill, default");
+
+    JLabel lblC = new JLabel("C:");
+    frame.getContentPane().add(lblC, "2, 18, right, default");
+
+    cComboBox = new FilteredComboBox<String>();
+    frame.getContentPane().add(cComboBox, "4, 18, fill, default");
+
+    JLabel lblMinRatioPer = new JLabel("Minimum Ratio Per Player:");
+    frame.getContentPane().add(lblMinRatioPer, "6, 2, right, default");
+
+    NumberFormat ratioFormat = NumberFormat.getNumberInstance();
+    ratioFormat.setMaximumIntegerDigits(2);
+    ratioFormat.setMinimumIntegerDigits(1);
+    ratioFormat.setMaximumFractionDigits(2);
+    ratioFormat.setMinimumFractionDigits(2);
+
+    minRatioField = new JFormattedTextField(ratioFormat);
+    minRatioField.setValue(Constants.RATIO_THRESHOLD);
+    minRatioField.setColumns(5);
+    frame.getContentPane().add(minRatioField, "8, 2, left, default");
+
+    JLabel lblMinimumValuePer = new JLabel("Minimum Value Per Player:");
+    frame.getContentPane().add(lblMinimumValuePer, "6, 4, right, default");
+
+    NumberFormat valueFormat = NumberFormat.getNumberInstance();
+    valueFormat.setMaximumIntegerDigits(2);
+    valueFormat.setMinimumIntegerDigits(1);
+    valueFormat.setMaximumFractionDigits(2);
+    valueFormat.setMinimumFractionDigits(2);
+
+    minValueField = new JFormattedTextField(valueFormat);
+    minValueField.setValue(Constants.VALUE_THRESHOLD);
+    minValueField.setColumns(5);
+    frame.getContentPane().add(minValueField, "8, 4, left, default");
+
+    JButton btnUpdateProjections = new JButton("Update Projections");
+    btnUpdateProjections.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        updateProjectionsAndFillComboBoxes();
+      };
+    });
+    frame.getContentPane().add(btnUpdateProjections, "4, 32");
+
+    JButton btnCreateTeams = new JButton("Create Teams");
+    btnCreateTeams.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent arg0) {
+        createTeams();
+      }
+    });
+    frame.getContentPane().add(btnCreateTeams, "6, 32");
+// frame.getGlassPane().setVisible(true);
+  }
+
+  void addPlayersToComboBox(FilteredComboBox<String> comboBox1, FilteredComboBox<String> comboBox2, List<Player> playerList) {
+    comboBox1.removeAllItems();
+    comboBox1.addItem("");
+    if(comboBox2 != null) {
+      comboBox2.removeAllItems();
+      comboBox2.addItem("");
+    }
+
+    Collections.sort(playerList);
+    for(Player player : playerList) {
+      comboBox1.addItem(player.getName());
+      if(comboBox2 != null) {
+        comboBox2.addItem(player.getName());
+      }
+    }
+  }
+
+  List<String> getReqPlayers(FilteredComboBox<String> comboBox1, FilteredComboBox<String> comboBox2) {
+    List<String> reqPlayers = new ArrayList<String>();
+    if(!((String)comboBox1.getSelectedItem()).trim().isEmpty()) {
+      reqPlayers.add(((String)comboBox1.getSelectedItem()));
+    }
+    if(comboBox2 != null && !((String)comboBox2.getSelectedItem()).trim().isEmpty()) {
+      reqPlayers.add(((String)comboBox2.getSelectedItem()));
+    }
+    return reqPlayers;
+  }
+
+  void createTeams() {
+    final JFrame teamsFrame = new JFrame("Teams By "
+        + (useTotalValueButton.isSelected() ? "Total Value" : useTotalCompButton.isSelected() ? "Total Comp Value" : "Total Average"));
+    final DisabledGlassPane teamsGlassPane = new DisabledGlassPane();
+    teamsFrame.setGlassPane(teamsGlassPane);
+    teamsFrame.getContentPane().setLayout(new BorderLayout());
+    teamsFrame.setSize(640, 480);
+    teamsFrame.setLocationRelativeTo(getFrame());
+    teamsFrame.setVisible(true);
+    teamsGlassPane.activate("Creating teams...");
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if(dbp == null) {
+          dbp = new DBP();
+        }
+
+        Map<String, List<String>> reqPlayers = new HashMap<String, List<String>>();
+        reqPlayers.put(Constants.PG, getReqPlayers(pg1ComboBox, pg2ComboBox));
+        reqPlayers.put(Constants.SG, getReqPlayers(sg1ComboBox, sg2ComboBox));
+        reqPlayers.put(Constants.SF, getReqPlayers(sf1ComboBox, sf2ComboBox));
+        reqPlayers.put(Constants.PF, getReqPlayers(pf1ComboBox, pf2ComboBox));
+        reqPlayers.put(Constants.C, getReqPlayers(cComboBox, null));
+        final List<Team> teams = dbp.createTeams(reqPlayers, new BigDecimal(minRatioField.getText()),
+            new BigDecimal(minValueField.getText()), useTotalValueButton.isSelected() ? 'V' : useTotalCompButton.isSelected() ? 'C' : 'A');
+
+        EventQueue.invokeLater(new Runnable() {
+          public void run() {
+            try {
+              JTextArea teamTextArea = new JTextArea();
+              teamTextArea.setEditable(false);
+              for(Team team : teams) {
+                for(String line : team.printTeamStrings()) {
+                  teamTextArea.append(line);
+                  teamTextArea.append("\n");
+                }
+              }
+              JScrollPane teamsScrollPane = new JScrollPane(teamTextArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                  JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+              teamsFrame.getContentPane().add(teamsScrollPane, BorderLayout.CENTER);
+              teamsFrame.repaint();
+              teamsFrame.validate();
+              teamsGlassPane.deactivate();
+            }
+            catch(Exception e) {
+              e.printStackTrace();
+            }
+          }
+        });
+      }
+    }).start();
+  }
+
+  void updateProjectionsAndFillComboBoxes() {
+    getGlassPane().activate("Updating Projections...");
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if(dbp == null) {
+          dbp = new DBP();
+        }
+        final Map<String, List<Player>> playerMap = dbp.getPlayerMap(new BigDecimal(minRatioField.getText()),
+            new BigDecimal(minValueField.getText()));
+
+        EventQueue.invokeLater(new Runnable() {
+          public void run() {
+            try {
+              addPlayersToComboBox(pg1ComboBox, pg2ComboBox, playerMap.get(Constants.PG));
+              addPlayersToComboBox(sg1ComboBox, sg2ComboBox, playerMap.get(Constants.SG));
+              addPlayersToComboBox(sf1ComboBox, sf2ComboBox, playerMap.get(Constants.SF));
+              addPlayersToComboBox(pf1ComboBox, pf2ComboBox, playerMap.get(Constants.PF));
+              addPlayersToComboBox(cComboBox, null, playerMap.get(Constants.C));
+              getGlassPane().deactivate();
+
+              JTabbedPane tabbedPane = new JTabbedPane();
+              tabbedPane.addTab(Constants.PG, getPositionTable(playerMap.get(Constants.PG)));
+              tabbedPane.addTab(Constants.SG, getPositionTable(playerMap.get(Constants.SG)));
+              tabbedPane.addTab(Constants.SF, getPositionTable(playerMap.get(Constants.SF)));
+              tabbedPane.addTab(Constants.PF, getPositionTable(playerMap.get(Constants.PF)));
+              tabbedPane.addTab(Constants.C, getPositionTable(playerMap.get(Constants.C)));
+
+              JFrame playersFrame = new JFrame("Players");
+              playersFrame.getContentPane().setLayout(new BorderLayout());
+              playersFrame.setSize(640, 480);
+              playersFrame.setLocationRelativeTo(getFrame());
+              playersFrame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
+              // getGlassPane().deactivate();
+              playersFrame.setVisible(true);
+            }
+            catch(Exception e) {
+              e.printStackTrace();
+            }
+          }
+        });
+      }
+    }).start();
+  }
+
+  private JScrollPane getPositionTable(List<Player> playerList) {
+    Object[][] data = new Object[playerList.size()][6];
+    int rowNum = 0;
+    for(Player player : playerList) {
+      Object[] playerRow = {player.getName(), player.getOpponent(), player.getPrice(), player.getRatio(), player.getValue(),
+                            player.getCompValue(), player.getEase()};
+      data[rowNum++] = playerRow;
+    }
+
+    JTable table = new JTable(data, columnNames);
+    TableColumn playerColumn = table.getColumnModel().getColumn(NAME_COLUMN);
+    TableColumn oppColumn = table.getColumnModel().getColumn(OPP_COLUMN);
+    TableColumn priceColumn = table.getColumnModel().getColumn(PRICE_COLUMN);
+    TableColumn ratioColumn = table.getColumnModel().getColumn(RATIO_COLUMN);
+    TableColumn valueColumn = table.getColumnModel().getColumn(VALUE_COLUMN);
+    TableColumn compValueColumn = table.getColumnModel().getColumn(COMP_VALUE_COLUMN);
+    TableColumn easeColumn = table.getColumnModel().getColumn(EASE_COLUMN);
+
+    playerColumn.setPreferredWidth(125);
+    ratioColumn.setCellRenderer(new ColorRenderer());
+    valueColumn.setCellRenderer(new ColorRenderer());
+    compValueColumn.setCellRenderer(new ColorRenderer());
+    easeColumn.setCellRenderer(new ColorRenderer());
+
+    return new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+  }
+}

@@ -1,0 +1,161 @@
+package dbp.server;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class Team {
+
+  private List<Player> players;
+
+  private BigDecimal totalValue;
+  private BigDecimal totalPrice;
+  private BigDecimal totalCompValue;
+  private BigDecimal totalAverage;
+
+  public Team() {
+    this(new ArrayList<Player>());
+  }
+
+  public Team(List<Player> players) {
+    super();
+    this.players = players;
+    totalValue = new BigDecimal(0);
+    totalPrice = new BigDecimal(0);
+    totalCompValue = new BigDecimal(0);
+    totalAverage = new BigDecimal(0);
+
+    for(Player player : players) {
+      totalValue = totalValue.add(player.getValue());
+      totalPrice = totalPrice.add(player.getPrice());
+      totalCompValue = totalCompValue.add(player.getCompValue());
+      totalAverage = totalAverage.add(player.getAverage());
+    }
+  }
+
+  public boolean addPlayersToTeam(List<Player> players) {
+    for(Player player : players) {
+      boolean result = addPlayerToTeam(player);
+      if(!result) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public boolean addPlayerToTeam(Player player) {
+    if(!players.contains(player)) {
+      players.add(player);
+      totalValue = totalValue.add(player.getValue());
+      totalPrice = totalPrice.add(player.getPrice());
+      totalCompValue = totalCompValue.add(player.getCompValue());
+      totalAverage = totalAverage.add(player.getAverage());
+      return true;
+    }
+    return false;
+  }
+
+  public void printTeam() {
+    for(Player player : players) {
+      System.out.println(player.getPosition()
+          + ": " + player.getName() + " " + player.getTeam() + " Value: " + player.getValue().setScale(2, BigDecimal.ROUND_HALF_UP)
+          + " - Comp Value: " + player.getCompValue().setScale(2, BigDecimal.ROUND_HALF_UP) + " - Price: " + player.getPrice());
+    }
+    System.out.println("Total Value: "
+        + totalValue.setScale(2, BigDecimal.ROUND_HALF_UP) + " - Total Comp Value: " + totalCompValue.setScale(2, BigDecimal.ROUND_HALF_UP)
+        + " - Total Price: " + totalPrice);
+    System.out.println();
+  }
+
+  public List<String> printTeamStrings() {
+    List<String> printTeamStrings = new ArrayList<String>();
+    for(Player player : players) {
+      printTeamStrings.add(player.getPosition()
+          + ": " + player.getName() + " " + player.getTeam() + " Value: " + player.getValue().setScale(2, BigDecimal.ROUND_HALF_UP)
+          + " - Comp Value: " + player.getCompValue().setScale(2, BigDecimal.ROUND_HALF_UP) + " - Price: " + player.getPrice());
+    }
+    printTeamStrings.add("Total Value: "
+        + totalValue.setScale(2, BigDecimal.ROUND_HALF_UP) + " - Total Comp Value: " + totalCompValue.setScale(2, BigDecimal.ROUND_HALF_UP)
+        + " - Total Price: " + totalPrice);
+    printTeamStrings.add("");
+    return printTeamStrings;
+  }
+
+  public List<Player> getPlayers() {
+    return players;
+  }
+
+  public void setPlayers(List<Player> players) {
+    this.players = players;
+  }
+
+  /**
+   * @return the totalValue
+   */
+  public BigDecimal getTotalValue() {
+    return totalValue;
+  }
+
+  /**
+   * @param totalValue
+   *        the totalValue to set
+   */
+  public void setTotalValue(BigDecimal totalValue) {
+    this.totalValue = totalValue;
+  }
+
+  /**
+   * @return the totalPrice
+   */
+  public BigDecimal getTotalPrice() {
+    return totalPrice;
+  }
+
+  /**
+   * @param totalPrice
+   *        the totalPrice to set
+   */
+  public void setTotalPrice(BigDecimal totalPrice) {
+    this.totalPrice = totalPrice;
+  }
+
+  public BigDecimal getTotalCompValue() {
+    return totalCompValue;
+  }
+
+  public void setTotalCompValue(BigDecimal totalCompValue) {
+    this.totalCompValue = totalCompValue;
+  }
+
+  public BigDecimal getTotalAverage() {
+    return totalAverage;
+  }
+
+  public void setTotalAverage(BigDecimal totalAverage) {
+    this.totalAverage = totalAverage;
+  }
+
+  public int compareTeam(Team team, char type) {
+    switch(type) {
+      case 'V':
+        return getTotalValue().compareTo(team.getTotalValue());
+      case 'C':
+        return getTotalCompValue().compareTo(team.getTotalCompValue());
+      default: // 'A'
+        return getTotalAverage().compareTo(team.getTotalAverage());
+    }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(obj == null)
+      return false;
+    if(getClass() != obj.getClass())
+      return false;
+    Team other = (Team)obj;
+    Collections.sort(players);
+    Collections.sort(other.getPlayers());
+    return players.equals(other.getPlayers());
+  }
+}
